@@ -1,0 +1,22 @@
+{
+  "vim": {
+    "brew" : ["nvim"],
+    "symlinks": [
+      { "from": "nvim/x.ini", "  to": "$HOME/.config/nvim/x.ini" },
+      { "from": "nvim/plugged", "to": "$HOME/.config/nvim/plugged" },
+      { "from": "nvim/autoload","to": "$HOME/.config/nvim/autoload" }
+    ],
+    "shell" : [
+      {"run": "vim +PlugInstall +qall"}
+    ]
+  },
+
+  "homebrew": {
+    "brew" : [
+      "zsh",
+      "git",
+      "htop"
+    ]
+  }
+
+}

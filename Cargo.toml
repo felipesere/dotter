@@ -1,0 +1,10 @@
+cargo-features = ["edition"]
+
+[package]
+edition = '2018'
+name = "dotter"
+version = "0.1.0"
+authors = ["Felipe Sere <felipesere@gmail.com>"]
+
+[dependencies]
+serde_json = "1.0"
