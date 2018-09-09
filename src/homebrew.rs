@@ -1,5 +1,44 @@
 use crate::{Command, Context};
-use std::process;
+use std::process::{self, ExitStatus};
+
+fn brew(cask: bool) -> process::Command {
+    let mut command = process::Command::new("brew");
+    if cask {
+        command.arg("cask");
+    }
+    command
+}
+
+fn install<S: AsRef<str>>(name: S, cask: bool) -> ExitStatus {
+    brew(cask)
+        .arg("install")
+        .arg(name.as_ref())
+        .status()
+        .expect("Homebrew: could not install package")
+}
+
+fn remove<S: AsRef<str>>(name: S, cask: bool) -> ExitStatus {
+    brew(cask)
+        .arg("remove")
+        .arg(name.as_ref())
+        .status()
+        .expect("Homebrew: could not remove package")
+}
+
+fn ls<S: AsRef<str>>(name: S, cask: bool) -> BrewStatus {
+    let status = brew(cask)
+        .arg("ls")
+        .arg("--versions")
+        .arg(name.as_ref())
+        .status()
+        .expect("Homebrew: Could not check if package present");
+
+    if status.success() {
+        BrewStatus::Installed
+    } else {
+        BrewStatus::Missing
+    }
+}
 
 #[derive(Deserialize, Debug)]
 pub struct TappedBrew {
@@ -20,15 +59,41 @@ pub enum Brew {
     FromCask(CaskBrew),
 }
 
+#[derive(PartialEq, Eq, Debug)]
+pub struct Fact<T: Eq + std::fmt::Debug> {
+    value: T,
+}
+
+#[derive(PartialEq, Eq, Debug)]
+pub enum BrewStatus {
+    Installed,
+    Missing,
+}
+
+impl Brew {
+    fn gather_facts(&self) -> Fact<BrewStatus> {
+        match self {
+            Brew::Simple(name) => Fact {
+                value: ls(name, false),
+            },
+            Brew::FromCask(CaskBrew { cask }) => Fact {
+                value: ls(cask, true),
+            },
+            _ => Fact {
+                value: BrewStatus::Missing,
+            },
+        }
+    }
+}
+
 impl Command for Brew {
     fn execute(&self, _context: &Context) {
         match self {
             Brew::Simple(name) => {
-                process::Command::new("brew")
-                    .arg("install")
-                    .arg(name)
-                    .status()
-                    .expect("failed to execute process");
+                install(name, false);
+            }
+            Brew::FromCask(CaskBrew { cask }) => {
+                install(cask, true);
             }
             _ => (),
         }
@@ -37,11 +102,10 @@ impl Command for Brew {
     fn rollback(&self, _context: &Context) {
         match self {
             Brew::Simple(name) => {
-                process::Command::new("brew")
-                    .arg("remove")
-                    .arg(name)
-                    .status()
-                    .expect("failed to execute process");
+                remove(name, false);
+            }
+            Brew::FromCask(CaskBrew { cask }) => {
+                remove(cask, true);
             }
             _ => (),
         }
@@ -61,10 +125,32 @@ mod tests {
 
         let brew = Brew::Simple("parallel".to_string());
 
+        assert_missing(&brew);
         brew.execute(&context);
 
-        // could do something around the 'gather_facts' and a brew list
+        assert_installed(&brew);
         brew.rollback(&context);
+
+        assert_missing(&brew);
+    }
+
+    #[test]
+    fn works_for_brew_casks() {
+        let context = Context {
+            working_directory: PathBuf::new(),
+        };
+
+        let brew_cask = Brew::FromCask(CaskBrew {
+            cask: "couleurs".to_string(),
+        });
+
+        assert_missing(&brew_cask);
+        brew_cask.execute(&context);
+
+        assert_installed(&brew_cask);
+        brew_cask.rollback(&context);
+
+        assert_missing(&brew_cask);
     }
 
     #[test]
@@ -72,4 +158,22 @@ mod tests {
 
     #[test]
     fn rolling_back_homebrew_will_uninstall_declared_apps() {}
+
+    fn assert_installed(brew: &Brew) {
+        assert_eq!(
+            brew.gather_facts(),
+            Fact {
+                value: BrewStatus::Installed
+            }
+        );
+    }
+
+    fn assert_missing(brew: &Brew) {
+        assert_eq!(
+            brew.gather_facts(),
+            Fact {
+                value: BrewStatus::Missing
+            }
+        );
+    }
 }
