@@ -1,6 +1,10 @@
 {
   "vim": {
-    "brew" : ["nvim", {"tap": "homebrew/cask-fonts", "name": "font-roboto-mono"}],
+    "brew" : [
+      "nvim",
+      {"tap": "homebrew/cask-fonts", "name": "font-roboto-mono"},
+      {"cask": "thing"}
+    ],
     "symlinks": [
       { "from": "nvim/x.ini",   "to": "$HOME/.config/nvim/x.ini" },
       { "from": "nvim/plugged", "to": "$HOME/.config/nvim/plugged" },

@@ -8,11 +8,16 @@ pub struct TappedBrew {
 }
 
 #[derive(Deserialize, Debug)]
+pub struct CaskBrew {
+    cask: String,
+}
+
+#[derive(Deserialize, Debug)]
 #[serde(untagged)]
 pub enum Brew {
     Simple(String),
     FromTap(TappedBrew),
-    FromCask(String),
+    FromCask(CaskBrew),
 }
 
 impl Command for Brew {
