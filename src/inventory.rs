@@ -5,7 +5,7 @@ use std::path::Path;
 use symlink::{remove_symlink_file, symlink_file};
 
 use crate::homebrew::Brew;
-use crate::{Command, Context, Explanation, Facts};
+use crate::{Command, Context};
 
 #[derive(Deserialize, Debug)]
 pub struct Inventory(HashMap<String, Group>);
@@ -35,13 +35,6 @@ struct Symlink {
 }
 
 impl Command for Symlink {
-    fn explain(&self, _context: &Context) -> Explanation {
-        Explanation {}
-    }
-    fn gather_facts(&self, _context: &Context) -> Facts {
-        Facts::None
-    }
-
     fn execute(&self, context: &Context) {
         let current_dir = context.current_dir();
         symlink_file(current_dir.join(&self.from), current_dir.join(&self.to))
@@ -85,7 +78,7 @@ mod tests {
 
     fn given_a_file_exists(name: &'static str) -> TempDir {
         let dir = tempdir().unwrap();
-        let file_path = dir.path().join("original.txt");
+        let file_path = dir.path().join(name);
         let mut tmp_file = File::create(file_path).unwrap();
         writeln!(tmp_file, "The original text").unwrap();
 
@@ -114,8 +107,6 @@ mod tests {
 
         let after = std::fs::read_dir(&context.working_directory).unwrap();
         assert_eq!(after.count(), 1);
-
-        let explanation = linker.explain(&context);
     }
 
     #[test]
