@@ -1,34 +1,11 @@
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::File;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use symlink::{remove_symlink_file, symlink_file};
 
-pub enum Facts {
-    None,
-}
-
-pub struct Context {
-    working_directory: PathBuf,
-}
-
-pub struct Explanation {}
-
-impl Context {
-    fn current_dir(&self) -> &Path {
-        &self.working_directory
-    }
-}
-
-pub trait Command {
-    fn explain(&self, context: &Context) -> Explanation;
-
-    fn gather_facts(&self, context: &Context) -> Facts;
-
-    fn execute(&self, context: &Context);
-
-    fn rollback(&self, context: &Context);
-}
+use crate::homebrew::Brew;
+use crate::{Command, Context, Explanation, Facts};
 
 #[derive(Deserialize, Debug)]
 pub struct Inventory(HashMap<String, Group>);
@@ -37,20 +14,6 @@ impl Inventory {
     fn count(&self) -> usize {
         self.0.len()
     }
-}
-
-#[derive(Deserialize, Debug)]
-pub struct TappedBrew {
-    tap: String,
-    name: String,
-}
-
-#[derive(Deserialize, Debug)]
-#[serde(untagged)]
-enum Brew {
-    Simple(String),
-    FromTap(TappedBrew),
-    FromCask(String),
 }
 
 #[derive(Deserialize, Debug)]
@@ -157,13 +120,4 @@ mod tests {
 
     #[test]
     fn it_will_interpolate_home_directory() {}
-
-    #[test]
-    fn it_will_install_things_from_homebrew() {}
-
-    #[test]
-    fn explaining_homebrew_commands_shows_what_needs_installing() {}
-
-    #[test]
-    fn rolling_back_homebrew_will_uninstall_declared_apps() {}
 }
