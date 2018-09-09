@@ -2,7 +2,7 @@
   "vim": {
     "brew" : ["nvim"],
     "symlinks": [
-      { "from": "nvim/x.ini", "  to": "$HOME/.config/nvim/x.ini" },
+      { "from": "nvim/x.ini",   "to": "$HOME/.config/nvim/x.ini" },
       { "from": "nvim/plugged", "to": "$HOME/.config/nvim/plugged" },
       { "from": "nvim/autoload","to": "$HOME/.config/nvim/autoload" }
     ],
@@ -13,10 +13,8 @@
 
   "homebrew": {
     "brew" : [
-      "zsh",
       "git",
       "htop"
     ]
   }
-
 }
