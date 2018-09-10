@@ -9,6 +9,7 @@ extern crate serde_derive;
 
 mod homebrew;
 mod inventory;
+mod shell;
 
 use std::path::{Path, PathBuf};
 

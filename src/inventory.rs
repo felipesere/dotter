@@ -6,6 +6,7 @@ use symlink::{remove_symlink_file, symlink_file};
 
 use crate::homebrew::Brew;
 use crate::{Command, Context};
+use crate::shell::ShellCommand;
 
 #[derive(Deserialize, Debug)]
 pub struct Inventory(HashMap<String, Group>);
@@ -47,10 +48,6 @@ impl Command for Symlink {
     }
 }
 
-#[derive(Deserialize, Debug)]
-struct ShellCommand {
-    run: String,
-}
 
 pub fn read_inventory<P: AsRef<Path>>(path: P) -> Result<Inventory, Box<Error>> {
     let file = File::open(path)?;
