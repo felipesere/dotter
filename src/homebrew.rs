@@ -1,15 +1,16 @@
 use crate::{Command, Context};
 use std::process::{self, ExitStatus};
 
-fn brew(cask: bool) -> process::Command {
+fn brew(source: Source) -> process::Command {
     let mut command = process::Command::new("brew");
-    if cask {
-        command.arg("cask");
+    match source {
+        Source::Cask => { command.arg("cask"); },
+        _ => ()
     }
     command
 }
 
-fn install<S: AsRef<str>>(name: S, cask: bool) -> ExitStatus {
+fn install<S: AsRef<str>>(name: S, cask: Source) -> ExitStatus {
     brew(cask)
         .arg("install")
         .arg(name.as_ref())
@@ -17,7 +18,7 @@ fn install<S: AsRef<str>>(name: S, cask: bool) -> ExitStatus {
         .expect("Homebrew: could not install package")
 }
 
-fn remove<S: AsRef<str>>(name: S, cask: bool) -> ExitStatus {
+fn remove<S: AsRef<str>>(name: S, cask: Source) -> ExitStatus {
     brew(cask)
         .arg("remove")
         .arg(name.as_ref())
@@ -25,7 +26,7 @@ fn remove<S: AsRef<str>>(name: S, cask: bool) -> ExitStatus {
         .expect("Homebrew: could not remove package")
 }
 
-fn ls<S: AsRef<str>>(name: S, cask: bool) -> BrewStatus {
+fn ls<S: AsRef<str>>(name: S, cask: Source) -> BrewStatus {
     let status = brew(cask)
         .arg("ls")
         .arg("--versions")
@@ -70,17 +71,26 @@ pub enum BrewStatus {
     Missing,
 }
 
+enum Source {
+    Regular,
+    Cask
+}
+
+use crate::homebrew::Source::Cask;
+use crate::homebrew::Source::Regular;
+
+
 impl Brew {
     fn gather_facts(&self) -> Fact<BrewStatus> {
         match self {
             Brew::Simple(name) => Fact {
-                value: ls(name, false),
+                value: ls(name, Regular),
             },
             Brew::FromCask(CaskBrew { cask }) => Fact {
-                value: ls(cask, true),
+                value: ls(cask, Cask),
             },
-            _ => Fact {
-                value: BrewStatus::Missing,
+            Brew::FromTap(TappedBrew { tap: _, name}) => Fact {
+                value: ls(name, Regular),
             },
         }
     }
@@ -90,24 +100,29 @@ impl Command for Brew {
     fn execute(&self, _context: &Context) {
         match self {
             Brew::Simple(name) => {
-                install(name, false);
+                install(name, Regular);
             }
             Brew::FromCask(CaskBrew { cask }) => {
-                install(cask, true);
+                install(cask, Cask);
             }
-            _ => (),
+            Brew::FromTap(TappedBrew{ tap, name}) => {
+                let full_name = format!("{}/{}", tap, name);
+                install(full_name, Regular);
+            }
         }
     }
 
     fn rollback(&self, _context: &Context) {
         match self {
             Brew::Simple(name) => {
-                remove(name, false);
+                remove(name, Regular);
             }
             Brew::FromCask(CaskBrew { cask }) => {
-                remove(cask, true);
+                remove(cask, Cask);
             }
-            _ => (),
+            Brew::FromTap(TappedBrew{tap: _tap, name}) => {
+                remove(name, Regular);
+            }
         }
     }
 }
@@ -143,6 +158,23 @@ mod tests {
         let brew_cask = Brew::FromCask(CaskBrew {
             cask: "couleurs".to_string(),
         });
+
+        assert_missing(&brew_cask);
+        brew_cask.execute(&context);
+
+        assert_installed(&brew_cask);
+        brew_cask.rollback(&context);
+
+        assert_missing(&brew_cask);
+    }
+
+    #[test]
+    fn works_for_brew_tap() {
+        let context = Context {
+            working_directory: PathBuf::new(),
+        };
+
+        let brew_cask = Brew::FromTap(TappedBrew{ tap: "brewsci/bio".to_string(), name: "abacas".to_string()});
 
         assert_missing(&brew_cask);
         brew_cask.execute(&context);
