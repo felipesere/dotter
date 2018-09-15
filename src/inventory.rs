@@ -5,8 +5,8 @@ use std::path::Path;
 use symlink::{remove_symlink_file, symlink_file};
 
 use crate::homebrew::Brew;
-use crate::{Command, Context};
 use crate::shell::ShellCommand;
+use crate::{Command, Context};
 
 #[derive(Deserialize, Debug)]
 pub struct Inventory(HashMap<String, Group>);
@@ -15,10 +15,14 @@ impl Inventory {
     fn count(&self) -> usize {
         self.0.len()
     }
+
+    pub fn group<S: Into<String>>(&self, group: S) -> Option<&Group> {
+        self.0.get(&group.into())
+    }
 }
 
 #[derive(Deserialize, Debug)]
-struct Group {
+pub struct Group {
     #[serde(default)]
     brew: Vec<Brew>,
 
@@ -27,6 +31,16 @@ struct Group {
 
     #[serde(default)]
     shell: Vec<ShellCommand>,
+}
+
+impl Command for Group {
+    fn execute(&self, context: &Context) {
+        self.brew.execute(&context);
+    }
+
+    fn rollback(&self, context: &Context) {
+        self.brew.rollback(&context);
+    }
 }
 
 #[derive(Deserialize, Debug)]
@@ -47,7 +61,6 @@ impl Command for Symlink {
         remove_symlink_file(current_dir.join(&self.to)).expect("Could not remove symlink");
     }
 }
-
 
 pub fn read_inventory<P: AsRef<Path>>(path: P) -> Result<Inventory, Box<Error>> {
     let file = File::open(path)?;

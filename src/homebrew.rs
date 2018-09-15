@@ -133,6 +133,7 @@ mod tests {
     use std::path::PathBuf;
 
     #[test]
+    #[ignore]
     fn it_will_install_things_from_homebrew() {
         let context = Context {
             working_directory: PathBuf::new(),
@@ -150,6 +151,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn works_for_brew_casks() {
         let context = Context {
             working_directory: PathBuf::new(),
@@ -169,6 +171,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn works_for_brew_tap() {
         let context = Context {
             working_directory: PathBuf::new(),
@@ -187,9 +190,6 @@ mod tests {
 
     #[test]
     fn explaining_homebrew_commands_shows_what_needs_installing() {}
-
-    #[test]
-    fn rolling_back_homebrew_will_uninstall_declared_apps() {}
 
     fn assert_installed(brew: &Brew) {
         assert_eq!(

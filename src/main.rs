@@ -29,6 +29,28 @@ pub trait Command {
     fn rollback(&self, context: &Context);
 }
 
+impl<T: Command> Command for Vec<T> {
+    fn execute(&self, context: &Context) {
+        for command in self {
+            command.execute(context);
+        }
+    }
+
+    fn rollback(&self, context: &Context) {
+        for command in self {
+            command.rollback(context);
+        }
+    }
+}
+
 fn main() {
-    println!("Hello, world!");
+    let path = std::env::current_dir().unwrap();
+    let context = Context {
+        working_directory: path,
+    };
+    let inv = inventory::read_inventory("samples/inventory.json").unwrap();
+    let group = inv.group("test").unwrap();
+    group.execute(&context);
+    println!("Done!");
+    group.rollback(&context);
 }
