@@ -29,6 +29,17 @@ pub trait Command {
     fn rollback(&self, context: &Context);
 }
 
+pub trait Source {
+    const NAME: &'static str;
+    type Item: Command;
+
+    fn is_installed() -> bool {
+        true
+    }
+
+    fn perform(&self, command: Self::Item) -> bool;
+}
+
 impl<T: Command> Command for Vec<T> {
     fn execute(&self, context: &Context) {
         for command in self {

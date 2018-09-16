@@ -6,7 +6,7 @@ use symlink::{remove_symlink_file, symlink_file};
 
 use crate::homebrew::Brew;
 use crate::shell::ShellCommand;
-use crate::{Command, Context};
+use crate::{Command, Context, Source};
 
 #[derive(Deserialize, Debug)]
 pub struct Inventory(HashMap<String, Group>);
@@ -47,6 +47,17 @@ impl Command for Group {
 struct Symlink {
     from: String,
     to: String,
+}
+
+struct Symlinker {}
+
+impl Source for Symlinker {
+    const NAME: &'static str = "symlinks";
+    type Item = Symlink;
+
+    fn perform(&self, command: Symlink) -> bool {
+        true
+    }
 }
 
 impl Command for Symlink {

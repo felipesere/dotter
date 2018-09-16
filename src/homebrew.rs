@@ -1,24 +1,46 @@
-use crate::{Command, Context};
+use crate::{Command, Context, Source};
 use std::process::{self, ExitStatus};
+use std::ffi::OsStr;
 
-fn brew(source: Source) -> process::Command {
+struct Homebrew {}
+
+fn is_installed<S: AsRef<OsStr>>(name: S) -> bool {
+    let status = process::Command::new("type").arg(name).status().expect("Could not run type to look for binary");
+    status.success()
+
+}
+
+impl Source for Homebrew {
+    const NAME: &'static str = "brew";
+    type Item = Brew;
+
+    fn is_installed() -> bool {
+        is_installed("brew")
+    }
+
+    fn perform(&self, _command: Brew) -> bool {
+        true
+    }
+}
+
+fn brew(source: BrewSoure) -> process::Command {
     let mut command = process::Command::new("brew");
     match source {
-        Source::Cask => { command.arg("cask"); },
+        BrewSoure::Cask => { command.arg("cask"); },
         _ => ()
     }
     command
 }
 
-fn install<S: AsRef<str>>(name: S, cask: Source) -> ExitStatus {
+fn install<S: AsRef<OsStr>>(name: S, cask: BrewSoure) -> ExitStatus {
     brew(cask)
         .arg("install")
-        .arg(name.as_ref())
+        .arg(name)
         .status()
         .expect("Homebrew: could not install package")
 }
 
-fn remove<S: AsRef<str>>(name: S, cask: Source) -> ExitStatus {
+fn remove<S: AsRef<OsStr>>(name: S, cask: BrewSoure) -> ExitStatus {
     brew(cask)
         .arg("remove")
         .arg(name.as_ref())
@@ -26,7 +48,7 @@ fn remove<S: AsRef<str>>(name: S, cask: Source) -> ExitStatus {
         .expect("Homebrew: could not remove package")
 }
 
-fn ls<S: AsRef<str>>(name: S, cask: Source) -> BrewStatus {
+fn ls<S: AsRef<OsStr>>(name: S, cask: BrewSoure) -> BrewStatus {
     let status = brew(cask)
         .arg("ls")
         .arg("--versions")
@@ -71,13 +93,13 @@ pub enum BrewStatus {
     Missing,
 }
 
-enum Source {
+enum BrewSoure {
     Regular,
     Cask
 }
 
-use crate::homebrew::Source::Cask;
-use crate::homebrew::Source::Regular;
+use crate::homebrew::BrewSoure::Cask;
+use crate::homebrew::BrewSoure::Regular;
 
 
 impl Brew {
