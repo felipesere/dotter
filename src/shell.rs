@@ -25,9 +25,7 @@ mod tests {
 
     #[test]
     fn it_runs_a_simple_shell_command() {
-        let context = Context {
-            working_directory: PathBuf::new(),
-        };
+        let context = Context::default();
 
         let echo_command = ShellCommand {
             run: "echo \"Hi there\"".to_string(),

@@ -59,6 +59,7 @@ mod tests {
 
         let context = Context {
             working_directory: dir.into_path(),
+            ..Context::default()
         };
 
         linker.execute(&context);

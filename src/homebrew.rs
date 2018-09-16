@@ -157,9 +157,7 @@ mod tests {
     #[test]
     #[ignore]
     fn it_will_install_things_from_homebrew() {
-        let context = Context {
-            working_directory: PathBuf::new(),
-        };
+        let context = Context::default();
 
         let brew = Brew::Simple("parallel".to_string());
 
@@ -175,9 +173,7 @@ mod tests {
     #[test]
     #[ignore]
     fn works_for_brew_casks() {
-        let context = Context {
-            working_directory: PathBuf::new(),
-        };
+        let context = Context::default();
 
         let brew_cask = Brew::FromCask(CaskBrew {
             cask: "couleurs".to_string(),
@@ -195,9 +191,7 @@ mod tests {
     #[test]
     #[ignore]
     fn works_for_brew_tap() {
-        let context = Context {
-            working_directory: PathBuf::new(),
-        };
+        let context = Context::default();
 
         let brew_cask = Brew::FromTap(TappedBrew{ tap: "brewsci/bio".to_string(), name: "abacas".to_string()});
 

@@ -13,10 +13,24 @@ mod shell;
 mod symlinks;
 
 use std::path::{Path, PathBuf};
+use std::default::Default;
+use std::env;
+use std::collections::HashMap;
 
 pub struct Context {
     working_directory: PathBuf,
+    environment: HashMap<String, String>,
 }
+
+impl Default for Context {
+    fn default() -> Context {
+        Context {
+            working_directory: env::current_dir().unwrap(),
+            environment: env::vars().collect()
+        }
+    }
+}
+
 
 impl Context {
     fn current_dir(&self) -> &Path {
@@ -56,10 +70,7 @@ impl<T: Command> Command for Vec<T> {
 }
 
 fn main() {
-    let path = std::env::current_dir().unwrap();
-    let context = Context {
-        working_directory: path,
-    };
+    let context = Context::default();
     let inv = inventory::read_inventory("samples/inventory.json").unwrap();
     let group = inv.group("test").unwrap();
     group.execute(&context);
