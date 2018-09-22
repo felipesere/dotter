@@ -46,8 +46,12 @@ impl Command for Group {
     }
 
     fn explain(&self, context: &Context) -> Vec<Explanation> {
-        // do something clever to check if target/source exist
-        self.brew.explain(&context)
+        let mut explanations = Vec::new();
+        explanations.append(&mut self.brew.explain(&context));
+        explanations.append(&mut self.symlinks.explain(&context));
+        explanations.append(&mut self.shell.explain(&context));
+
+        explanations
     }
 }
 

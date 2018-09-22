@@ -1,4 +1,4 @@
-use crate::{Command, Context, Source, Explanation};
+use crate::{Command, Context, Direction, Source, Explanation};
 use std::collections::HashMap;
 use symlink::{remove_symlink_file, symlink_file};
 
@@ -36,8 +36,10 @@ impl Command for Symlink {
     }
 
     fn explain(&self, context: &Context) -> Vec<Explanation> {
-        // do something clever to check if target/source exist
-        vec![Explanation::new("this is from the symlink")]
+        match context.direction {
+            Direction::Execute => vec![Explanation::new("some symlinks will be applied")],
+            Direction::Rollback => vec![Explanation::new("we are rolling back symlinks")],
+        }
     }
 }
 

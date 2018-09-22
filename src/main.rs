@@ -18,15 +18,24 @@ use std::env;
 use std::path::{Path, PathBuf};
 
 pub struct Context {
-    working_directory: PathBuf,
+    direction: Direction,
     environment: HashMap<String, String>,
+    explain: bool,
+    working_directory: PathBuf
+}
+
+pub enum Direction {
+    Execute,
+    Rollback
 }
 
 impl Default for Context {
     fn default() -> Context {
         Context {
-            working_directory: env::current_dir().expect("Could not get current directory"),
-            environment: env::vars().collect()
+            direction: Direction::Execute,
+            environment: env::vars().collect(),
+            explain: false,
+            working_directory: env::current_dir().expect("Could not get current directory")
         }
     }
 }
@@ -102,6 +111,10 @@ fn main() {
              .help("What inventory file to use")
              .required(true)
              .takes_value(true))
+        .arg(Arg::with_name("explain")
+             .help("Explain what actions will be taken")
+             .long("explain")
+             .required(false))
         .arg(Arg::with_name("group")
              .help("Only run a single group")
              .long("group")
@@ -110,25 +123,33 @@ fn main() {
         .get_matches();
 
 
+    let mut context = Context::default();
     let command = m.value_of("direction").expect("No direction was given");
     let inventory = m.value_of("inventory").expect("No inventory was given");
     let group = m.value_of("group").expect("No group was chosen");
+    let explain = m.is_present("explain");
 
     let inv = inventory::read_inventory(inventory)
         .expect(&format!("Could not read inventory from {}", inventory));
     let group = inv.group(group)
         .expect("Did not find that group");
 
-    let context = Context::default();
+    if command == "rollback" {
+        context.direction = Direction::Rollback;
+    }
+    context.explain = explain;
+
+    if explain {
+        for explanation in group.explain(&context) {
+            println!("{}", explanation.message);
+        }
+        return;
+    }
 
     if command == "run" {
         group.execute(&context);
     } else if command == "rollback" {
         group.rollback(&context);
-    } else if command == "explain" {
-        for explanation in group.explain(&context) {
-            println!("{}", explanation.message);
-        }
     } else {
         println!("Unrecognized command {}", command);
     }
