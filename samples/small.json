@@ -1,0 +1,8 @@
+{
+  "vim": {
+    "brew" : [
+      "nvim",
+      {"tap": "homebrew/cask-fonts", "name": "font-roboto-mono"}
+    ]
+  }
+}

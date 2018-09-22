@@ -1,13 +1,23 @@
 use crate::{Command, Context, Source};
-use std::process::{self, ExitStatus};
 use std::ffi::OsStr;
+use std::process::{self, ExitStatus};
+use std::path::Path;
 
 struct Homebrew {}
 
-fn is_installed<S: AsRef<OsStr>>(name: S) -> bool {
-    let status = process::Command::new("type").arg(name).status().expect("Could not run type to look for binary");
-    status.success()
+pub fn is_homebrew_installed() -> bool {
+    Path::new("/usr/local/bin/brew").exists()
+}
 
+pub fn install_homebrew() -> bool {
+    let body = reqwest::get("https://raw.githubusercontent.com/Homebrew/install/master/install")
+        .expect("URL was weird")
+        .text()
+        .expect("could not get stuff");
+
+    let status = std::process::Command::new("ruby").args(&["-e", &body]).status().expect("it bombed out?");
+
+    status.success()
 }
 
 impl Source for Homebrew {
@@ -15,8 +25,10 @@ impl Source for Homebrew {
     type Item = Brew;
 
     fn is_installed() -> bool {
-        is_installed("brew")
+        is_homebrew_installed()
     }
+
+    fn install() {}
 
     fn perform(&self, _command: Brew) -> bool {
         true
@@ -26,8 +38,10 @@ impl Source for Homebrew {
 fn brew(source: BrewSoure) -> process::Command {
     let mut command = process::Command::new("brew");
     match source {
-        BrewSoure::Cask => { command.arg("cask"); },
-        _ => ()
+        BrewSoure::Cask => {
+            command.arg("cask");
+        }
+        _ => (),
     }
     command
 }
@@ -95,12 +109,11 @@ pub enum BrewStatus {
 
 enum BrewSoure {
     Regular,
-    Cask
+    Cask,
 }
 
 use crate::homebrew::BrewSoure::Cask;
 use crate::homebrew::BrewSoure::Regular;
-
 
 impl Brew {
     fn gather_facts(&self) -> Fact<BrewStatus> {
@@ -111,7 +124,7 @@ impl Brew {
             Brew::FromCask(CaskBrew { cask }) => Fact {
                 value: ls(cask, Cask),
             },
-            Brew::FromTap(TappedBrew { tap: _, name}) => Fact {
+            Brew::FromTap(TappedBrew { tap: _, name }) => Fact {
                 value: ls(name, Regular),
             },
         }
@@ -127,7 +140,7 @@ impl Command for Brew {
             Brew::FromCask(CaskBrew { cask }) => {
                 install(cask, Cask);
             }
-            Brew::FromTap(TappedBrew{ tap, name}) => {
+            Brew::FromTap(TappedBrew { tap, name }) => {
                 let full_name = format!("{}/{}", tap, name);
                 install(full_name, Regular);
             }
@@ -142,7 +155,7 @@ impl Command for Brew {
             Brew::FromCask(CaskBrew { cask }) => {
                 remove(cask, Cask);
             }
-            Brew::FromTap(TappedBrew{tap: _tap, name}) => {
+            Brew::FromTap(TappedBrew { tap: _tap, name }) => {
                 remove(name, Regular);
             }
         }
@@ -193,7 +206,10 @@ mod tests {
     fn works_for_brew_tap() {
         let context = Context::default();
 
-        let brew_cask = Brew::FromTap(TappedBrew{ tap: "brewsci/bio".to_string(), name: "abacas".to_string()});
+        let brew_cask = Brew::FromTap(TappedBrew {
+            tap: "brewsci/bio".to_string(),
+            name: "abacas".to_string(),
+        });
 
         assert_missing(&brew_cask);
         brew_cask.execute(&context);

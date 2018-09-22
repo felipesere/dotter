@@ -3,7 +3,7 @@ use std::error::Error;
 use std::fs::File;
 use std::path::Path;
 
-use crate::homebrew::Brew;
+use crate::homebrew::{is_homebrew_installed, install_homebrew, Brew};
 use crate::shell::ShellCommand;
 use crate::symlinks::Symlink;
 use crate::{Command, Context};
@@ -35,6 +35,9 @@ pub struct Group {
 
 impl Command for Group {
     fn execute(&self, context: &Context) {
+        if !is_homebrew_installed() {
+            install_homebrew();
+        }
         self.brew.execute(&context);
     }
 

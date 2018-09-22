@@ -1,5 +1,6 @@
 use crate::{Command, Context, Source};
-
+use std::collections::HashMap;
+use maplit::hashmap;
 use symlink::{remove_symlink_file, symlink_file};
 
 #[derive(Deserialize, Debug)]
@@ -22,14 +23,33 @@ impl Source for Symlinker {
 impl Command for Symlink {
     fn execute(&self, context: &Context) {
         let current_dir = context.current_dir();
-        symlink_file(current_dir.join(&self.from), current_dir.join(&self.to))
+        let destination = interpolate(&self.to, &context.environment);
+
+        symlink_file(current_dir.join(&self.from), current_dir.join(&destination))
             .expect("Could not create symlink");
     }
 
     fn rollback(&self, context: &Context) {
         let current_dir = context.current_dir();
-        remove_symlink_file(current_dir.join(&self.to)).expect("Could not remove symlink");
+        let destination = interpolate(&self.to, &context.environment);
+
+        remove_symlink_file(current_dir.join(&destination)).expect("Could not remove symlink");
     }
+}
+
+fn interpolate(target: &str, values: &HashMap<String, String>) -> String {
+    if !target.contains("$") {
+        return target.to_string();
+    }
+
+    let mut better_target = target.to_string();
+    for (key, value) in values {
+        if  target.contains(key) {
+            let x = format!("${}", key);
+            better_target = better_target.replace(&x, value);
+        }
+    }
+    better_target
 }
 
 #[cfg(test)]
@@ -74,5 +94,32 @@ mod tests {
     }
 
     #[test]
-    fn it_will_interpolate_home_directory() {}
+    fn it_will_interpolate_home_directory() {
+        let dir = given_a_file_exists("original.txt");
+        std::fs::create_dir(dir.path().join("fancy_subdir")).expect("Was not able to create subdirectory");
+
+        let linker = Symlink {
+            from: "original.txt".to_string(),
+            to: "$SOME_ENV_FLAG/the_copy.txt".to_string(),
+        };
+
+        let environment = hashmap! {
+            "SOME_ENV_FLAG".to_string() => "./fancy_subdir".to_string()
+        };
+
+        let context = Context {
+            working_directory: dir.into_path(),
+            environment: environment
+        };
+
+        linker.execute(&context);
+
+        let paths = std::fs::read_dir(&context.working_directory.join("fancy_subdir")).unwrap();
+        assert_eq!(paths.count(), 1);
+
+        linker.rollback(&context);
+
+        let after = std::fs::read_dir(&context.working_directory.join("fancy_subdir")).unwrap();
+        assert_eq!(after.count(), 0);
+    }
 }
