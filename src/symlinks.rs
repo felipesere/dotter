@@ -36,9 +36,10 @@ impl Command for Symlink {
     }
 
     fn explain(&self, context: &Context) -> Vec<Explanation> {
+        let destination = interpolate(&self.to, &context.environment);
         let message = match context.direction {
-            Direction::Execute => format!("adding a link from {} to {}", self.from, self.to),
-            Direction::Rollback => format!("removing the link from {} to {}", self.from, self.to),
+            Direction::Execute => format!("adding a link from {} to {}", self.from, destination),
+            Direction::Rollback => format!("removing the link from {} to {}", self.from, destination),
         };
 
         vec![Explanation::new(message)]
@@ -118,7 +119,8 @@ mod tests {
 
         let context = Context {
             working_directory: dir.into_path(),
-            environment: environment
+            environment: environment,
+            ..Context::default()
         };
 
         linker.execute(&context);
