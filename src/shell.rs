@@ -1,4 +1,4 @@
-use crate::{Command, Context};
+use crate::{Command, Context, Explanation};
 use std::process::{self, ExitStatus};
 
 #[derive(Deserialize, Debug)]
@@ -16,6 +16,11 @@ impl Command for ShellCommand {
     }
 
     fn rollback(&self, context: &Context) {}
+
+    fn explain(&self, context: &Context) -> Vec<Explanation> {
+        // do something clever to check if target/source exist
+        vec![Explanation::new("this is from the shell script")]
+    }
 }
 
 #[cfg(test)]
@@ -32,7 +37,5 @@ mod tests {
         };
 
         echo_command.execute(&context);
-
-        //assert!(false);
     }
 }

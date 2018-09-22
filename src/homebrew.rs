@@ -1,4 +1,4 @@
-use crate::{Command, Context, Source};
+use crate::{Command, Context, Source, Explanation};
 use std::ffi::OsStr;
 use std::process::{self, ExitStatus};
 use std::path::Path;
@@ -159,6 +159,11 @@ impl Command for Brew {
                 remove(name, Regular);
             }
         }
+    }
+
+    fn explain(&self, context: &Context) -> Vec<Explanation> {
+        // do something clever to check if target/source exist
+        vec![Explanation::new("this is from the brew")]
     }
 }
 

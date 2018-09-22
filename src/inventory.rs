@@ -6,7 +6,7 @@ use std::path::Path;
 use crate::homebrew::{is_homebrew_installed, install_homebrew, Brew};
 use crate::shell::ShellCommand;
 use crate::symlinks::Symlink;
-use crate::{Command, Context};
+use crate::{Command, Context, Explanation};
 
 #[derive(Deserialize, Debug)]
 pub struct Inventory(HashMap<String, Group>);
@@ -43,6 +43,11 @@ impl Command for Group {
 
     fn rollback(&self, context: &Context) {
         self.brew.rollback(&context);
+    }
+
+    fn explain(&self, context: &Context) -> Vec<Explanation> {
+        // do something clever to check if target/source exist
+        self.brew.explain(&context)
     }
 }
 

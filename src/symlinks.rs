@@ -1,6 +1,5 @@
-use crate::{Command, Context, Source};
+use crate::{Command, Context, Source, Explanation};
 use std::collections::HashMap;
-use maplit::hashmap;
 use symlink::{remove_symlink_file, symlink_file};
 
 #[derive(Deserialize, Debug)]
@@ -35,6 +34,11 @@ impl Command for Symlink {
 
         remove_symlink_file(current_dir.join(&destination)).expect("Could not remove symlink");
     }
+
+    fn explain(&self, context: &Context) -> Vec<Explanation> {
+        // do something clever to check if target/source exist
+        vec![Explanation::new("this is from the symlink")]
+    }
 }
 
 fn interpolate(target: &str, values: &HashMap<String, String>) -> String {
@@ -58,6 +62,7 @@ mod tests {
     use std::fs::File;
     use std::io::Write;
     use tempfile::{tempdir, TempDir};
+    use maplit::hashmap;
 
     fn given_a_file_exists(name: &'static str) -> TempDir {
         let dir = tempdir().unwrap();

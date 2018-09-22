@@ -38,10 +38,24 @@ impl Context {
     }
 }
 
+pub struct Explanation {
+    message: String
+}
+
+impl Explanation {
+    fn new<S: Into<String>>(message: S) -> Explanation {
+        Explanation {
+            message: message.into()
+        }
+    }
+}
+
 pub trait Command {
     fn execute(&self, context: &Context);
 
     fn rollback(&self, context: &Context);
+
+    fn explain(&self, context: &Context) -> Vec<Explanation>;
 }
 
 pub trait Source {
@@ -68,6 +82,10 @@ impl<T: Command> Command for Vec<T> {
         for command in self {
             command.rollback(context);
         }
+    }
+
+    fn explain(&self, context: &Context) -> Vec<Explanation> {
+        self.iter().flat_map(|c| c.explain(context)).collect()
     }
 }
 
@@ -107,6 +125,10 @@ fn main() {
         group.execute(&context);
     } else if command == "rollback" {
         group.rollback(&context);
+    } else if command == "explain" {
+        for explanation in group.explain(&context) {
+            println!("{}", explanation.message);
+        }
     } else {
         println!("Unrecognized command {}", command);
     }
