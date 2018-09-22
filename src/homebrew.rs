@@ -1,4 +1,4 @@
-use crate::{Command, Context, Source, Explanation};
+use crate::{Command, Context, Source, Explanation, Direction};
 use std::ffi::OsStr;
 use std::process::{self, ExitStatus};
 use std::path::Path;
@@ -96,6 +96,16 @@ pub enum Brew {
     FromCask(CaskBrew),
 }
 
+impl Brew {
+    fn name(&self) -> String {
+        match self {
+            Brew::Simple(name) => name.clone(),
+            Brew::FromTap(TappedBrew {tap, name}) => format!("{}/{}", tap, name),
+            Brew::FromCask(CaskBrew {cask}) => cask.clone(),
+        }
+    }
+}
+
 #[derive(PartialEq, Eq, Debug)]
 pub struct Fact<T: Eq + std::fmt::Debug> {
     value: T,
@@ -162,8 +172,11 @@ impl Command for Brew {
     }
 
     fn explain(&self, context: &Context) -> Vec<Explanation> {
-        // do something clever to check if target/source exist
-        vec![Explanation::new("this is from the brew")]
+        let message = match context.direction {
+            Direction::Execute => format!("installing {}", self.name()),
+            Direction::Rollback => format!("removing {}", self.name()),
+        };
+        vec![Explanation::new(message)]
     }
 }
 

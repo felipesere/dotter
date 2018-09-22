@@ -36,10 +36,12 @@ impl Command for Symlink {
     }
 
     fn explain(&self, context: &Context) -> Vec<Explanation> {
-        match context.direction {
-            Direction::Execute => vec![Explanation::new("some symlinks will be applied")],
-            Direction::Rollback => vec![Explanation::new("we are rolling back symlinks")],
-        }
+        let message = match context.direction {
+            Direction::Execute => format!("adding a link from {} to {}", self.from, self.to),
+            Direction::Rollback => format!("removing the link from {} to {}", self.from, self.to),
+        };
+
+        vec![Explanation::new(message)]
     }
 }
 
