@@ -10,6 +10,7 @@ mod homebrew;
 mod inventory;
 mod shell;
 mod symlinks;
+mod group;
 
 use clap::{Arg, App};
 use std::collections::HashMap;
