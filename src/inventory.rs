@@ -14,8 +14,8 @@ impl Inventory {
         self.0.len()
     }
 
-    pub fn group<S: Into<String>>(&self, group: S) -> Option<&Group> {
-        self.0.get(&group.into())
+    pub fn group<S: Into<String>>(&mut self, group: S) -> Option<Group> {
+        self.0.remove(&group.into())
     }
 }
 

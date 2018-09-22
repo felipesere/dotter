@@ -21,10 +21,14 @@ impl Command for Group {
             install_homebrew();
         }
         self.brew.execute(&context);
+        self.symlinks.execute(&context);
+        self.shell.execute(&context);
     }
 
     fn rollback(&self, context: &Context) {
         self.brew.rollback(&context);
+        self.symlinks.rollback(&context);
+        self.shell.rollback(&context);
     }
 
     fn explain(&self, context: &Context) -> Vec<Explanation> {

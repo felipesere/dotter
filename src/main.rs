@@ -127,31 +127,32 @@ fn main() {
     let mut context = Context::default();
     let command = m.value_of("direction").expect("No direction was given");
     let inventory = m.value_of("inventory").expect("No inventory was given");
-    let group = m.value_of("group").expect("No group was chosen");
+    let group_name = m.value_of("group");
     let explain = m.is_present("explain");
 
-    let inv = inventory::read_inventory(inventory)
-        .expect(&format!("Could not read inventory from {}", inventory));
-    let group = inv.group(group)
-        .expect("Did not find that group");
+    let mut inv = inventory::read_inventory(inventory).expect(&format!("Could not read inventory from {}", inventory));
 
     if command == "rollback" {
         context.direction = Direction::Rollback;
     }
     context.explain = explain;
 
+    let target: Box<dyn Command> = if group_name.is_some() {
+        let group = inv.group(group_name.unwrap());
+        Box::new(group.unwrap())
+    } else {
+        Box::new(inv)
+    };
+
     if explain {
-        for explanation in group.explain(&context) {
+        for explanation in target.explain(&context) {
             println!("{}", explanation.message);
         }
         return;
     }
 
-    if command == "run" {
-        group.execute(&context);
-    } else if command == "rollback" {
-        group.rollback(&context);
-    } else {
-        println!("Unrecognized command {}", command);
+    match context.direction {
+        Direction::Execute => target.execute(&context),
+        Direction::Rollback => target.rollback(&context),
     }
 }
