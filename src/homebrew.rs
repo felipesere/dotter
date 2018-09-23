@@ -1,9 +1,7 @@
-use crate::{Command, Context, Source, Explanation, Direction};
+use crate::{Command, Context, Explanation, Direction};
 use std::ffi::OsStr;
 use std::process::{self, ExitStatus};
 use std::path::Path;
-
-struct Homebrew {}
 
 pub fn is_homebrew_installed() -> bool {
     Path::new("/usr/local/bin/brew").exists()
@@ -18,21 +16,6 @@ pub fn install_homebrew() -> bool {
     let status = std::process::Command::new("ruby").args(&["-e", &body]).status().expect("it bombed out?");
 
     status.success()
-}
-
-impl Source for Homebrew {
-    const NAME: &'static str = "brew";
-    type Item = Brew;
-
-    fn is_installed() -> bool {
-        is_homebrew_installed()
-    }
-
-    fn install() {}
-
-    fn perform(&self, _command: Brew) -> bool {
-        true
-    }
 }
 
 fn brew(source: BrewSoure) -> process::Command {

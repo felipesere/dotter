@@ -1,22 +1,11 @@
-use crate::{Command, Context, Direction, Source, Explanation};
+use crate::{Command, Context, Direction, Explanation};
 use symlink::{remove_symlink_file, symlink_file};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 #[derive(Deserialize, Debug)]
 pub struct Symlink {
     from: String,
     to: String,
-}
-
-struct Symlinker {}
-
-impl Source for Symlinker {
-    const NAME: &'static str = "symlinks";
-    type Item = Symlink;
-
-    fn perform(&self, command: Symlink) -> bool {
-        true
-    }
 }
 
 impl Command for Symlink {

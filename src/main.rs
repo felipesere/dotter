@@ -68,19 +68,6 @@ pub trait Command {
     fn explain(&self, context: &Context) -> Vec<Explanation>;
 }
 
-pub trait Source {
-    const NAME: &'static str;
-    type Item: Command;
-
-    fn is_installed() -> bool {
-        true
-    }
-
-    fn install() {}
-
-    fn perform(&self, command: Self::Item) -> bool;
-}
-
 impl<T: Command> Command for Vec<T> {
     fn execute(&self, context: &Context) {
         for command in self {
@@ -138,8 +125,8 @@ fn main() {
     context.explain = explain;
 
     let target: Box<dyn Command> = if group_name.is_some() {
-        let group = inv.group(group_name.unwrap());
-        Box::new(group.unwrap())
+        let group = inv.group(group_name.unwrap()).unwrap();
+        Box::new(group)
     } else {
         Box::new(inv)
     };
