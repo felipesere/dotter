@@ -3,6 +3,7 @@
 extern crate serde;
 extern crate serde_json;
 extern crate symlink;
+extern crate failure;
 
 #[macro_use] extern crate serde_derive;
 
@@ -17,6 +18,9 @@ use std::collections::HashMap;
 use std::default::Default;
 use std::env;
 use std::path::{Path, PathBuf};
+use std::result;
+
+pub type Result<T> = result::Result<T, failure::Error>;
 
 pub struct Context {
     direction: Direction,
