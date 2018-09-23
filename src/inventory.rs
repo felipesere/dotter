@@ -10,10 +10,6 @@ use crate::{Command, Context, Explanation};
 pub struct Inventory(HashMap<String, Group>);
 
 impl Inventory {
-    fn count(&self) -> usize {
-        self.0.len()
-    }
-
     pub fn group<S: Into<String>>(&mut self, group: S) -> Option<Group> {
         self.0.remove(&group.into())
     }
@@ -21,20 +17,20 @@ impl Inventory {
 
 impl Command for Inventory {
     fn execute(&self, context: &Context) {
-        for (key, value) in self.0.iter() {
+        for (_key, value) in self.0.iter() {
             value.execute(&context);
         }
     }
 
     fn rollback(&self, context: &Context) {
-        for (key, value) in self.0.iter() {
+        for (_key, value) in self.0.iter() {
             value.rollback(&context);
         }
     }
 
     fn explain(&self, context: &Context) -> Vec<Explanation> {
         let mut explanations = Vec::new();
-        for (key, value) in self.0.iter() {
+        for (_key, value) in self.0.iter() {
             explanations.append(&mut value.explain(&context));
         }
         explanations
@@ -55,9 +51,9 @@ mod tests {
 
     #[test]
     fn it_can_read_the_inventory() {
-        let inventory: Inventory = read_inventory("samples/inventory.json").unwrap();
+        let mut inventory: Inventory = read_inventory("samples/inventory.json").unwrap();
 
-        println!("{:#?}", inventory);
-        assert_eq!(2, inventory.count());
+        assert!(inventory.group("vim").is_some());
+        assert!(inventory.group("homebrew").is_some());
     }
 }

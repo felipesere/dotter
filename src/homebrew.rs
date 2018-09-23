@@ -87,11 +87,14 @@ impl Brew {
             Brew::FromCask(CaskBrew {cask}) => cask.clone(),
         }
     }
-}
 
-#[derive(PartialEq, Eq, Debug)]
-pub struct Fact<T: Eq + std::fmt::Debug> {
-    value: T,
+    fn status(&self) -> BrewStatus {
+        match self {
+            Brew::Simple(name) => ls(name, Regular),
+            Brew::FromCask(CaskBrew { cask }) => ls(cask, Cask),
+            Brew::FromTap(TappedBrew { tap: _, name }) => ls(name, Regular),
+        }
+    }
 }
 
 #[derive(PartialEq, Eq, Debug)]
@@ -105,24 +108,7 @@ enum BrewSoure {
     Cask,
 }
 
-use crate::homebrew::BrewSoure::Cask;
-use crate::homebrew::BrewSoure::Regular;
-
-impl Brew {
-    fn gather_facts(&self) -> Fact<BrewStatus> {
-        match self {
-            Brew::Simple(name) => Fact {
-                value: ls(name, Regular),
-            },
-            Brew::FromCask(CaskBrew { cask }) => Fact {
-                value: ls(cask, Cask),
-            },
-            Brew::FromTap(TappedBrew { tap: _, name }) => Fact {
-                value: ls(name, Regular),
-            },
-        }
-    }
-}
+use crate::homebrew::BrewSoure::{Cask, Regular};
 
 impl Command for Brew {
     fn execute(&self, _context: &Context) {
@@ -155,6 +141,11 @@ impl Command for Brew {
     }
 
     fn explain(&self, context: &Context) -> Vec<Explanation> {
+        match self.status() {
+            BrewStatus::Installed => 1,
+            BrewStatus::Missing => 2,
+        };
+
         let message = match context.direction {
             Direction::Execute => format!("installing {}", self.name()),
             Direction::Rollback => format!("removing {}", self.name()),
@@ -163,10 +154,11 @@ impl Command for Brew {
     }
 }
 
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::PathBuf;
 
     #[test]
     #[ignore]
@@ -225,20 +217,10 @@ mod tests {
     fn explaining_homebrew_commands_shows_what_needs_installing() {}
 
     fn assert_installed(brew: &Brew) {
-        assert_eq!(
-            brew.gather_facts(),
-            Fact {
-                value: BrewStatus::Installed
-            }
-        );
+        assert_eq!( brew.status(), BrewStatus::Installed);
     }
 
     fn assert_missing(brew: &Brew) {
-        assert_eq!(
-            brew.gather_facts(),
-            Fact {
-                value: BrewStatus::Missing
-            }
-        );
+        assert_eq!( brew.status(), BrewStatus::Missing);
     }
 }

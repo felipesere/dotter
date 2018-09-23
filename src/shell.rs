@@ -1,5 +1,5 @@
 use crate::{Command, Context, Explanation};
-use std::process::{self, ExitStatus};
+use std::process::{self};
 
 #[derive(Deserialize, Debug)]
 pub struct ShellCommand {
@@ -7,7 +7,7 @@ pub struct ShellCommand {
 }
 
 impl Command for ShellCommand {
-    fn execute(&self, context: &Context) {
+    fn execute(&self, _context: &Context) {
         process::Command::new("sh")
             .arg("-c")
             .arg(&self.run)
@@ -15,9 +15,9 @@ impl Command for ShellCommand {
             .expect("Could not run shell command");
     }
 
-    fn rollback(&self, context: &Context) {}
+    fn rollback(&self, _context: &Context) {}
 
-    fn explain(&self, context: &Context) -> Vec<Explanation> {
+    fn explain(&self, _context: &Context) -> Vec<Explanation> {
         // do something clever to check if target/source exist
         vec![Explanation::new("this is from the shell script")]
     }
@@ -26,7 +26,6 @@ impl Command for ShellCommand {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::PathBuf;
 
     #[test]
     fn it_runs_a_simple_shell_command() {
