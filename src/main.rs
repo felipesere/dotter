@@ -65,28 +65,36 @@ impl Explanation {
 }
 
 pub trait Command {
-    fn execute(&self, context: &Context);
+    fn execute(&self, context: &Context) -> Result<()>;
 
-    fn rollback(&self, context: &Context);
+    fn rollback(&self, context: &Context) -> Result<()>;
 
-    fn explain(&self, context: &Context) -> Vec<Explanation>;
+    fn explain(&self, context: &Context) -> Result<Vec<Explanation>>;
 }
 
 impl<T: Command> Command for Vec<T> {
-    fn execute(&self, context: &Context) {
+    fn execute(&self, context: &Context) -> Result<()> {
         for command in self {
-            command.execute(context);
+            command.execute(context)?;
         }
+        Ok(())
     }
 
-    fn rollback(&self, context: &Context) {
+    fn rollback(&self, context: &Context) -> Result<()> {
         for command in self {
-            command.rollback(context);
+            command.rollback(context)?;
         }
+        Ok(())
     }
 
-    fn explain(&self, context: &Context) -> Vec<Explanation> {
-        self.iter().flat_map(|c| c.explain(context)).collect()
+    fn explain(&self, context: &Context) -> Result<Vec<Explanation>> {
+        let mut explanations = Vec::new();
+
+        for command in self {
+            explanations.append(&mut command.explain(context)?);
+        }
+
+        Ok(explanations)
     }
 }
 
@@ -136,7 +144,7 @@ fn main() {
     };
 
     if explain {
-        for explanation in target.explain(&context) {
+        for explanation in target.explain(&context).unwrap() {
             println!("{}", explanation.message);
         }
         return;
@@ -145,5 +153,5 @@ fn main() {
     match context.direction {
         Direction::Execute => target.execute(&context),
         Direction::Rollback => target.rollback(&context),
-    }
+    };
 }

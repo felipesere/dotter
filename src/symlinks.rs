@@ -1,4 +1,4 @@
-use crate::{Command, Context, Direction, Explanation};
+use crate::{Command, Context, Direction, Explanation, Result};
 use symlink::{remove_symlink_file, symlink_file};
 use std::path::PathBuf;
 
@@ -9,22 +9,23 @@ pub struct Symlink {
 }
 
 impl Command for Symlink {
-    fn execute(&self, context: &Context) {
+    fn execute(&self, context: &Context) -> Result<()> {
         let current_dir = context.current_dir();
         let destination = interpolate(&self.to, context);
 
-        symlink_file(current_dir.join(&self.from), current_dir.join(&destination))
-            .expect("Could not create symlink");
+        symlink_file(current_dir.join(&self.from), current_dir.join(&destination))?;
+        Ok(())
     }
 
-    fn rollback(&self, context: &Context) {
+    fn rollback(&self, context: &Context) -> Result<()> {
         let current_dir = context.current_dir();
         let destination = interpolate(&self.to, context);
 
-        remove_symlink_file(current_dir.join(&destination)).expect("Could not remove symlink");
+        remove_symlink_file(current_dir.join(&destination))?; // TODO improve here?
+        Ok(())
     }
 
-    fn explain(&self, context: &Context) -> Vec<Explanation> {
+    fn explain(&self, context: &Context) -> Result<Vec<Explanation>> {
         let destination = interpolate(&self.to, context);
         let message = match context.direction {
             Direction::Execute => {
@@ -43,7 +44,7 @@ impl Command for Symlink {
             },
         };
 
-        vec![Explanation::new(message)]
+        Ok(vec![Explanation::new(message)])
     }
 }
 
@@ -161,7 +162,7 @@ mod tests {
             ..Context::default()
         };
 
-        let explanations = linker.explain(&context);
+        let explanations = linker.explain(&context).unwrap();
 
         let expected = format!("Symmlink to {}/the_copy.txt already exists", context.working_directory.display());
 
@@ -183,7 +184,7 @@ mod tests {
             ..Context::default()
         };
 
-        let explanations = linker.explain(&context);
+        let explanations = linker.explain(&context).unwrap();
 
         let expected = format!("Symmlink to {}/the_copy.txt did not exist", context.working_directory.display());
 

@@ -1,4 +1,4 @@
-use crate::{Command, Context, Explanation};
+use crate::{Command, Context, Explanation, Result};
 use std::process::{self};
 
 #[derive(Deserialize, Debug)]
@@ -7,19 +7,22 @@ pub struct ShellCommand {
 }
 
 impl Command for ShellCommand {
-    fn execute(&self, _context: &Context) {
+    fn execute(&self, _context: &Context) -> Result<()> {
         process::Command::new("sh")
             .arg("-c")
             .arg(&self.run)
-            .status()
-            .expect("Could not run shell command");
+            .status()?;
+
+        Ok(())
     }
 
-    fn rollback(&self, _context: &Context) {}
+    fn rollback(&self, _context: &Context) ->Result<()> {
+        Ok(())
+    }
 
-    fn explain(&self, _context: &Context) -> Vec<Explanation> {
+    fn explain(&self, _context: &Context) -> Result<Vec<Explanation>> {
         // do something clever to check if target/source exist
-        vec![Explanation::new("this is from the shell script")]
+        Ok(vec![Explanation::new("this is from the shell script")])
     }
 }
 

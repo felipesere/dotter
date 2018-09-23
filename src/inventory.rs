@@ -1,10 +1,9 @@
 use std::collections::HashMap;
-use std::error::Error;
 use std::fs::File;
 use std::path::Path;
 
 use crate::group::Group;
-use crate::{Command, Context, Explanation};
+use crate::{Command, Context, Explanation, Result};
 
 #[derive(Deserialize, Debug)]
 pub struct Inventory(HashMap<String, Group>);
@@ -16,28 +15,30 @@ impl Inventory {
 }
 
 impl Command for Inventory {
-    fn execute(&self, context: &Context) {
+    fn execute(&self, context: &Context) -> Result<()> {
         for (_key, value) in self.0.iter() {
-            value.execute(&context);
+            value.execute(&context)?;
         }
+        Ok(())
     }
 
-    fn rollback(&self, context: &Context) {
+    fn rollback(&self, context: &Context) -> Result<()> {
         for (_key, value) in self.0.iter() {
-            value.rollback(&context);
+            value.rollback(&context)?;
         }
+        Ok(())
     }
 
-    fn explain(&self, context: &Context) -> Vec<Explanation> {
+    fn explain(&self, context: &Context) -> Result<Vec<Explanation>> {
         let mut explanations = Vec::new();
         for (_key, value) in self.0.iter() {
-            explanations.append(&mut value.explain(&context));
+            explanations.append(&mut value.explain(&context)?);
         }
-        explanations
+        Ok(explanations)
     }
 }
 
-pub fn read_inventory<P: AsRef<Path>>(path: P) -> Result<Inventory, Box<Error>> {
+pub fn read_inventory<P: AsRef<Path>>(path: P) -> Result<Inventory> {
     let file = File::open(path)?;
 
     let i = serde_json::from_reader(file)?;

@@ -1,4 +1,4 @@
-use crate::{Command, Context, Explanation, Direction};
+use crate::{Command, Context, Explanation, Direction, Result};
 use std::ffi::OsStr;
 use std::process::{self, ExitStatus};
 use std::path::Path;
@@ -29,6 +29,7 @@ fn brew(source: BrewSoure) -> process::Command {
     command
 }
 
+// TODO better error reporting here!
 fn install<S: AsRef<OsStr>>(name: S, cask: BrewSoure) -> ExitStatus {
     brew(cask)
         .arg("install")
@@ -37,6 +38,7 @@ fn install<S: AsRef<OsStr>>(name: S, cask: BrewSoure) -> ExitStatus {
         .expect("Homebrew: could not install package")
 }
 
+// TODO better error reporting here!
 fn remove<S: AsRef<OsStr>>(name: S, cask: BrewSoure) -> ExitStatus {
     brew(cask)
         .arg("remove")
@@ -45,6 +47,7 @@ fn remove<S: AsRef<OsStr>>(name: S, cask: BrewSoure) -> ExitStatus {
         .expect("Homebrew: could not remove package")
 }
 
+// TODO better error reporting here!
 fn ls<S: AsRef<OsStr>>(name: S, cask: BrewSoure) -> BrewStatus {
     let status = brew(cask)
         .arg("ls")
@@ -111,7 +114,7 @@ enum BrewSoure {
 use crate::homebrew::BrewSoure::{Cask, Regular};
 
 impl Command for Brew {
-    fn execute(&self, _context: &Context) {
+    fn execute(&self, _context: &Context) -> Result<()> {
         match self {
             Brew::Simple(name) => {
                 install(name, Regular);
@@ -124,9 +127,11 @@ impl Command for Brew {
                 install(full_name, Regular);
             }
         }
+
+        Ok(())
     }
 
-    fn rollback(&self, _context: &Context) {
+    fn rollback(&self, _context: &Context) -> Result<()> {
         match self {
             Brew::Simple(name) => {
                 remove(name, Regular);
@@ -138,9 +143,10 @@ impl Command for Brew {
                 remove(name, Regular);
             }
         }
+        Ok(())
     }
 
-    fn explain(&self, context: &Context) -> Vec<Explanation> {
+    fn explain(&self, context: &Context) -> Result<Vec<Explanation>> {
         match self.status() {
             BrewStatus::Installed => 1,
             BrewStatus::Missing => 2,
@@ -150,7 +156,7 @@ impl Command for Brew {
             Direction::Execute => format!("installing {}", self.name()),
             Direction::Rollback => format!("removing {}", self.name()),
         };
-        vec![Explanation::new(message)]
+        Ok(vec![Explanation::new(message)])
     }
 }
 

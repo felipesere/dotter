@@ -1,7 +1,7 @@
 use crate::homebrew::{is_homebrew_installed, install_homebrew, Brew};
 use crate::shell::ShellCommand;
 use crate::symlinks::Symlink;
-use crate::{Command, Context, Explanation};
+use crate::{Command, Context, Explanation, Result};
 
 #[derive(Deserialize, Debug)]
 pub struct Group {
@@ -16,27 +16,29 @@ pub struct Group {
 }
 
 impl Command for Group {
-    fn execute(&self, context: &Context) {
+    fn execute(&self, context: &Context) -> Result<()> {
         if !is_homebrew_installed() {
             install_homebrew();
         }
-        self.brew.execute(&context);
-        self.symlinks.execute(&context);
-        self.shell.execute(&context);
+        self.brew.execute(&context)?;
+        self.symlinks.execute(&context)?;
+        self.shell.execute(&context)?;
+        Ok(())
     }
 
-    fn rollback(&self, context: &Context) {
+    fn rollback(&self, context: &Context) -> Result<()> {
         self.brew.rollback(&context);
         self.symlinks.rollback(&context);
         self.shell.rollback(&context);
+        Ok(())
     }
 
-    fn explain(&self, context: &Context) -> Vec<Explanation> {
+    fn explain(&self, context: &Context) -> Result<Vec<Explanation>> {
         let mut explanations = Vec::new();
-        explanations.append(&mut self.brew.explain(&context));
-        explanations.append(&mut self.symlinks.explain(&context));
-        explanations.append(&mut self.shell.explain(&context));
+        explanations.append(&mut self.brew.explain(&context)?);
+        explanations.append(&mut self.symlinks.explain(&context)?);
+        explanations.append(&mut self.shell.explain(&context)?);
 
-        explanations
+        Ok(explanations)
     }
 }
