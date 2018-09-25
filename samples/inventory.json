@@ -19,5 +19,9 @@
       "git",
       "htop"
     ]
+  },
+
+  "java": {
+    "brew": [{"cask": "intellij-idea"}]
   }
 }

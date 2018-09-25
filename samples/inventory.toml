@@ -1,4 +1,26 @@
 [vim]
 
-[[vim.symlinks]]
-from=
+  [[vim.brew]]
+  tap = "homebrew/cask-fonts"
+  name = "font-roboto-mono"
+
+  [[vim.symlinks]]
+  from = "nvim/x.ini"
+  to = "$HOME/.config/nvim/x.ini"
+
+  [[vim.symlinks]]
+  from = "nvim/plugged"
+  to = "$HOME/.config/nvim/plugged"
+
+  [[vim.symlinks]]
+  from = "nvim/autoload"
+  to = "$HOME/.config/nvim/autoload"
+
+  [[vim.shell]]
+  run = "vim +PlugInstall +qall"
+
+[homebrew]
+brew = [
+  "git",
+  "htop"
+]
