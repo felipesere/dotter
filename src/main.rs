@@ -99,7 +99,7 @@ impl<T: Command> Command for Vec<T> {
     }
 }
 
-fn main() {
+fn main() -> Result<()> {
     let m = App::new("Welcome to Dotter")
         .version("0.1")
         .author("Felipe Sere <felipesere@gmail.com>")
@@ -152,11 +152,11 @@ fn main() {
         for explanation in target.explain(&context).unwrap() {
             println!("{}", explanation.message);
         }
-        return;
+        Ok(())
+    } else {
+        match context.direction {
+            Direction::Execute => target.execute(&context),
+            Direction::Rollback => target.rollback(&context),
+        }
     }
-
-    match context.direction {
-        Direction::Execute => target.execute(&context),
-        Direction::Rollback => target.rollback(&context),
-    };
 }

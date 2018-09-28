@@ -24,7 +24,7 @@ impl Command for Symlink {
         let current_dir = context.current_dir();
         let destination = interpolate(&self.to, context);
 
-        remove_symlink_file(current_dir.join(&destination))?; // TODO improve here?
+        remove_symlink_file(current_dir.join(&destination))?;
         Ok(())
     }
 
