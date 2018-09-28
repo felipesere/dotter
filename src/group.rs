@@ -1,4 +1,4 @@
-use crate::homebrew::{is_homebrew_installed, install_homebrew, Brew};
+use crate::homebrew::Brew;
 use crate::shell::ShellCommand;
 use crate::symlinks::Symlink;
 use crate::{Command, Context, Explanation, Result};
@@ -17,9 +17,6 @@ pub struct Group {
 
 impl Command for Group {
     fn execute(&self, context: &Context) -> Result<()> {
-        if !is_homebrew_installed() {
-            install_homebrew();
-        }
         self.brew.execute(&context)?;
         self.symlinks.execute(&context)?;
         self.shell.execute(&context)?;
@@ -27,9 +24,9 @@ impl Command for Group {
     }
 
     fn rollback(&self, context: &Context) -> Result<()> {
-        self.brew.rollback(&context);
-        self.symlinks.rollback(&context);
-        self.shell.rollback(&context);
+        self.brew.rollback(&context)?;
+        self.symlinks.rollback(&context)?;
+        self.shell.rollback(&context)?;
         Ok(())
     }
 

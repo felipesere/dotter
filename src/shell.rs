@@ -22,7 +22,7 @@ impl Command for ShellCommand {
 
     fn explain(&self, _context: &Context) -> Result<Vec<Explanation>> {
         // do something clever to check if target/source exist
-        Ok(vec![Explanation::new("this is from the shell script")])
+        Ok(vec![Explanation::new(format!("About to run \"{}\"", self.run))])
     }
 }
 

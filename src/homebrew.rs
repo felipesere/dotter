@@ -115,6 +115,10 @@ use crate::homebrew::BrewSoure::{Cask, Regular};
 
 impl Command for Brew {
     fn execute(&self, _context: &Context) -> Result<()> {
+        if self.status() == BrewStatus::Installed {
+            return Ok(());
+        }
+
         match self {
             Brew::Simple(name) => {
                 install(name, Regular);
@@ -147,15 +151,13 @@ impl Command for Brew {
     }
 
     fn explain(&self, context: &Context) -> Result<Vec<Explanation>> {
-        match self.status() {
-            BrewStatus::Installed => 1,
-            BrewStatus::Missing => 2,
+        let message = match (self.status(), &context.direction) {
+            (BrewStatus::Installed, Direction::Execute)  => format!("{} is already installed, nothing to do", self.name()),
+            (BrewStatus::Missing,   Direction::Execute)  => format!("Will install {}", self.name()),
+            (BrewStatus::Installed, Direction::Rollback) => format!("WIll uninstall {}.", self.name()),
+            (BrewStatus::Missing,   Direction::Rollback)  => format!("{} is not installed, nothing to do.", self.name())
         };
 
-        let message = match context.direction {
-            Direction::Execute => format!("installing {}", self.name()),
-            Direction::Rollback => format!("removing {}", self.name()),
-        };
         Ok(vec![Explanation::new(message)])
     }
 }

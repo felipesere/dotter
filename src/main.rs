@@ -19,6 +19,7 @@ use std::default::Default;
 use std::env;
 use std::path::{Path, PathBuf};
 use std::result;
+use crate::homebrew::{is_homebrew_installed, install_homebrew};
 
 pub type Result<T> = result::Result<T, failure::Error>;
 
@@ -121,6 +122,10 @@ fn main() {
              .required(false)
              .takes_value(true))
         .get_matches();
+
+    if !is_homebrew_installed() {
+        install_homebrew();
+    }
 
 
     let mut context = Context::default();

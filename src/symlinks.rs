@@ -13,6 +13,9 @@ impl Command for Symlink {
         let current_dir = context.current_dir();
         let destination = interpolate(&self.to, context);
 
+        let parent = destination.parent().unwrap();
+        std::fs::create_dir_all(parent).expect("Trying to create parents");
+
         symlink_file(current_dir.join(&self.from), current_dir.join(&destination))?;
         Ok(())
     }
