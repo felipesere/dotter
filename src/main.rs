@@ -94,7 +94,7 @@ impl<T: Command> Command for Vec<T> {
 
 fn main() -> Result<()> {
     let m = App::new("Welcome to Dotter")
-        .version("0.1")
+        .version(env!("VERSION"))
         .author("Felipe Sere <felipesere@gmail.com>")
         .about("Think of a minimal subset of anisble, without any dependencies")
         .arg(Arg::with_name("direction")

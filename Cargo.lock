@@ -174,6 +174,7 @@ dependencies = [
  "clap 2.32.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure_derive 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "git-version 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "maplit 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "reqwest 0.9.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde 1.0.77 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -261,6 +262,11 @@ dependencies = [
  "futures 0.1.24 (registry+https://github.com/rust-lang/crates.io-index)",
  "num_cpus 1.8.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
+
+[[package]]
+name = "git-version"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "h2"
@@ -1248,6 +1254,7 @@ dependencies = [
 "checksum fuchsia-zircon-sys 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "3dcaa9ae7725d12cdb85b3ad99a434db70b468c09ded17e012d86b5c1010f7a7"
 "checksum futures 0.1.24 (registry+https://github.com/rust-lang/crates.io-index)" = "0c84b40c7e2de99ffd70602db314a7a8c26b2b3d830e6f7f7a142a8860ab3ca4"
 "checksum futures-cpupool 0.1.8 (registry+https://github.com/rust-lang/crates.io-index)" = "ab90cde24b3319636588d0c35fe03b1333857621051837ed769faefb4c2162e4"
+"checksum git-version 0.2.1 (registry+https://github.com/rust-lang/crates.io-index)" = "a1bc37021f50d852a4b134b05722b1c8e0ec7cd14262471e89a14a3df12c44a6"
 "checksum h2 0.1.12 (registry+https://github.com/rust-lang/crates.io-index)" = "a27e7ed946e8335bdf9a191bc1b9b14a03ba822d013d2f58437f4fabcbd7fc2c"
 "checksum http 0.1.13 (registry+https://github.com/rust-lang/crates.io-index)" = "24f58e8c2d8e886055c3ead7b28793e1455270b5fb39650984c224bc538ba581"
 "checksum httparse 1.3.2 (registry+https://github.com/rust-lang/crates.io-index)" = "7b6288d7db100340ca12873fd4d08ad1b8f206a9457798dfb17c018a33fee540"
