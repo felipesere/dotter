@@ -1,0 +1,3 @@
+[submodule "sample-dotfiles"]
+	path = sample-dotfiles
+	url = ./sample-dotfiles
