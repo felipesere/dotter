@@ -4,7 +4,7 @@ extern crate serde;
 extern crate serde_json;
 extern crate symlink;
 
-#[macro_use] extern crate structopt;
+extern crate structopt;
 
 use structopt::StructOpt;
 
@@ -34,7 +34,7 @@ struct MyError(&'static str);
 macro_rules! simple_error {
     ($expresssion:expr) => (
         result::Result::Err(failure::Error::from(MyError($expresssion)))
-        )
+    )
 }
 
 #[derive(Debug)]
