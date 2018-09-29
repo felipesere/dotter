@@ -127,22 +127,22 @@ fn main() -> Result<()> {
     let group_name = m.value_of("group");
     let explain = m.is_present("explain");
 
-    let mut inv = inventory::read_inventory(inventory).expect(&format!("Could not read inventory from {}", inventory));
+    let mut inv = inventory::read_inventory(inventory)?;
 
     if command == "rollback" {
         context.direction = Direction::Rollback;
     }
     context.explain = explain;
 
-    let target: Box<dyn Command> = if group_name.is_some() {
-        let group = inv.group(group_name.unwrap()).unwrap();
+    let target: Box<dyn Command> = if let Some(name) = group_name {
+        let group = inv.group(name).unwrap();
         Box::new(group)
     } else {
         Box::new(inv)
     };
 
     if explain {
-        for explanation in target.explain(&context).unwrap() {
+        for explanation in target.explain(&context)? {
             println!("{}", explanation.message);
         }
         Ok(())
