@@ -31,6 +31,12 @@ pub type Result<T> = result::Result<T, failure::Error>;
 #[fail(display = "Error occured: {}", _0)]
 struct MyError(&'static str);
 
+macro_rules! simple_error {
+    ($expresssion:expr) => (
+        result::Result::Err(failure::Error::from(MyError($expresssion)))
+        )
+}
+
 #[derive(Debug)]
 pub enum Direction {
     Execute,
@@ -46,7 +52,7 @@ impl std::str::FromStr for Direction {
         } else if s == "rollback" {
             Ok(Direction::Rollback)
         } else {
-            Err(failure::Error::from(MyError("Did not match either 'run' or 'rollback'")))
+            simple_error!("Did not match either 'run' or 'rollback'")
         }
     }
 }
