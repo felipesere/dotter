@@ -3,7 +3,12 @@
 extern crate serde;
 extern crate serde_json;
 extern crate symlink;
-extern crate failure;
+
+#[macro_use] extern crate structopt;
+
+use structopt::StructOpt;
+
+#[macro_use] extern crate failure;
 
 #[macro_use] extern crate serde_derive;
 
@@ -13,7 +18,6 @@ mod shell;
 mod symlinks;
 mod group;
 
-use clap::{Arg, App};
 use std::collections::HashMap;
 use std::default::Default;
 use std::env;
@@ -23,28 +27,30 @@ use crate::homebrew::{is_homebrew_installed, install_homebrew};
 
 pub type Result<T> = result::Result<T, failure::Error>;
 
-pub struct Context {
-    direction: Direction,
-    environment: HashMap<String, String>,
-    explain: bool,
-    working_directory: PathBuf
-}
+#[derive(Fail, Debug)]
+#[fail(display = "Error occured: {}", _0)]
+struct MyError(&'static str);
 
+#[derive(Debug)]
 pub enum Direction {
     Execute,
     Rollback
 }
 
-impl Default for Context {
-    fn default() -> Context {
-        Context {
-            direction: Direction::Execute,
-            environment: env::vars().collect(),
-            explain: false,
-            working_directory: env::current_dir().expect("Could not get current directory")
+impl std::str::FromStr for Direction {
+    type Err = failure::Error;
+
+    fn from_str(s: &str) -> Result<Self> {
+        if s == "run" {
+            Ok(Direction::Execute)
+        } else if s == "rollback" {
+            Ok(Direction::Rollback)
+        } else {
+            Err(failure::Error::from(MyError("Did not match either 'run' or 'rollback'")))
         }
     }
 }
+
 
 pub struct Explanation {
     message: String
@@ -92,56 +98,70 @@ impl<T: Command> Command for Vec<T> {
     }
 }
 
-fn main() -> Result<()> {
-    let m = App::new("Welcome to Dotter")
-        .version(env!("VERSION"))
-        .author("Felipe Sere <felipesere@gmail.com>")
-        .about("Think of a minimal subset of anisble, without any dependencies")
-        .arg(Arg::with_name("direction")
-             .help("Wheather to execute or rollback")
-             .required(true)
-             .takes_value(true))
-        .arg(Arg::with_name("inventory")
-             .help("What inventory file to use")
-             .required(true)
-             .takes_value(true))
-        .arg(Arg::with_name("explain")
-             .help("Explain what actions will be taken")
-             .long("explain")
-             .required(false))
-        .arg(Arg::with_name("group")
-             .help("Only run a single group")
-             .long("group")
-             .required(false)
-             .takes_value(true))
-        .get_matches();
+#[derive(StructOpt, Debug)]
+#[structopt(name = "dotter",
+            about = "Think of a minimal subset of anisble, without any dependencies",
+            author = "Felipe Sere <felipesere@gmail.com>",
+            version = "1.0.0")]
+struct Opt {
+    #[structopt(name="direction")]
+    direction: Direction,
 
+    #[structopt(name="inventory")]
+    inventory: String,
+
+    #[structopt(name="explain", long = "explain")]
+    explain: bool,
+
+    #[structopt(name="group", long = "group")]
+    group: Option<String>
+}
+
+pub struct Context {
+    direction: Direction,
+    environment: HashMap<String, String>,
+    explain: bool,
+    working_directory: PathBuf
+}
+
+impl Default for Context {
+    fn default() -> Context {
+        Context {
+            direction: Direction::Execute,
+            environment: env::vars().collect(),
+            explain: false,
+            working_directory: env::current_dir().expect("Could not get current directory")
+        }
+    }
+}
+
+impl std::convert::From<Opt> for Context {
+    fn from(options: Opt) -> Self {
+        Context {
+            direction: options.direction,
+            explain: options.explain,
+            ..Context::default()
+        }
+    }
+}
+
+fn main() -> Result<()> {
+    let opt = Opt::from_args();
     if !is_homebrew_installed() {
         install_homebrew();
     }
 
+    let mut inv = inventory::read_inventory(&opt.inventory)?;
 
-    let mut context = Context::default();
-    let command = m.value_of("direction").expect("No direction was given");
-    let inventory = m.value_of("inventory").expect("No inventory was given");
-    let group_name = m.value_of("group");
-    let explain = m.is_present("explain");
-
-    let mut inv = inventory::read_inventory(inventory)?;
-
-    if command == "rollback" {
-        context.direction = Direction::Rollback;
-    }
-    context.explain = explain;
-
-    let target: Box<dyn Command> = if let Some(name) = group_name {
-        let group = inv.group(name).unwrap();
+    let target: Box<dyn Command> = if let Some(name) = &opt.group {
+        let group = inv.group(name.as_ref()).expect("did not find group.");
         Box::new(group)
     } else {
         Box::new(inv)
     };
 
-    if explain {
+    let context = Context::from(opt);
+    if context.explain {
         for explanation in target.explain(&context)? {
             println!("{}", explanation.message);
         }
