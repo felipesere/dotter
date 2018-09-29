@@ -5,10 +5,6 @@ edition = '2018'
 name = "dotter"
 version = "0.1.0"
 authors = ["Felipe Sere <felipesere@gmail.com>"]
-build = "build.rs"
-
-[build-dependencies]
-git-version = "0.2.1"
 
 [dependencies]
 maplit = "1.0.1"
