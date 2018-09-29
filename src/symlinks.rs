@@ -10,21 +10,19 @@ pub struct Symlink {
 
 impl Command for Symlink {
     fn execute(&self, context: &Context) -> Result<()> {
-        let current_dir = context.current_dir();
         let destination = interpolate(&self.to, context);
 
         let parent = destination.parent().unwrap();
         std::fs::create_dir_all(parent).expect("Trying to create parents");
 
-        symlink_file(current_dir.join(&self.from), current_dir.join(&destination))?;
+        symlink_file(context.working_directory.join(&self.from), context.working_directory.join(&destination))?;
         Ok(())
     }
 
     fn rollback(&self, context: &Context) -> Result<()> {
-        let current_dir = context.current_dir();
         let destination = interpolate(&self.to, context);
 
-        remove_symlink_file(current_dir.join(&destination))?;
+        remove_symlink_file(context.working_directory.join(&destination))?;
         Ok(())
     }
 
@@ -54,7 +52,7 @@ impl Command for Symlink {
 
 fn interpolate(target: &str, context: &Context) -> PathBuf {
     if !target.contains("$") {
-        return context.current_dir().join(target)
+        return context.working_directory.join(target)
     }
 
     let mut better_target = target.to_string();
@@ -64,7 +62,7 @@ fn interpolate(target: &str, context: &Context) -> PathBuf {
             better_target = better_target.replace(&x, &value);
         }
     }
-    context.current_dir().join(better_target)
+    context.working_directory.join(better_target)
 }
 
 #[cfg(test)]

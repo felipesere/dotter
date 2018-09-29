@@ -17,7 +17,7 @@ use clap::{Arg, App};
 use std::collections::HashMap;
 use std::default::Default;
 use std::env;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::result;
 use crate::homebrew::{is_homebrew_installed, install_homebrew};
 
@@ -43,13 +43,6 @@ impl Default for Context {
             explain: false,
             working_directory: env::current_dir().expect("Could not get current directory")
         }
-    }
-}
-
-
-impl Context {
-    fn current_dir(&self) -> &Path {
-        &self.working_directory
     }
 }
 
