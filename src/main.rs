@@ -3,7 +3,7 @@
 extern crate serde;
 extern crate serde_json;
 extern crate symlink;
-extern crate structopt;
+extern crate clap;
 
 
 #[macro_use] extern crate failure;
@@ -20,45 +20,44 @@ use std::collections::HashMap;
 use std::default::Default;
 use std::{env, result};
 use std::path::PathBuf;
-use structopt::StructOpt;
+use clap::{App, Arg, ArgMatches};
+use std::str::FromStr;
 
 pub type Result<T> = result::Result<T, failure::Error>;
 
-#[derive(StructOpt, Debug)]
-#[structopt(name = "dotter",
-            about = "Think of a minimal subset of anisble, without any dependencies",
-            author = "Felipe Sere <felipesere@gmail.com>",
-            version = "1.0.0")]
-struct Opt {
-    #[structopt(name="direction")]
-    direction: Direction,
-
-    #[structopt(name="inventory")]
-    inventory: String,
-
-    #[structopt(name="explain", long = "explain")]
-    explain: bool,
-
-    #[structopt(name="group", long = "group")]
-    group: Option<String>
-}
-
 fn main() -> Result<()> {
-    let opt = Opt::from_args();
+    let matches = App::new("dotter")
+        .author("Felipe Sere <felipesere@gmail.com>")
+        .about("Think of a minimal subset of anisble, without any dependencies")
+        .arg(Arg::with_name("direction"))
+        .arg(Arg::with_name("inventory"))
+        .arg(Arg::with_name("explain"))
+        .arg(Arg::with_name("group"))
+        .arg(
+            Arg::with_name("version").short("v").long("version")
+            )
+        .get_matches();
+
+    if matches.is_present("version") {
+        println!(env!("VERSION"));
+        return Ok(());
+    }
+
+
     if !is_homebrew_installed() {
         install_homebrew();
     }
 
-    let mut inv = inventory::read_inventory(&opt.inventory)?;
+    let mut inv = inventory::read_inventory(&matches.value_of("inventory").unwrap())?;
 
-    let target: Box<dyn Command> = if let Some(name) = &opt.group {
+    let target: Box<dyn Command> = if let Some(name) = &matches.value_of("group") {
         let group = inv.group(name.as_ref()).expect("did not find group.");
         Box::new(group)
     } else {
         Box::new(inv)
     };
 
-    let context = Context::from(opt);
+    let context = Context::from(matches);
     if context.explain {
         for explanation in target.explain(&context)? {
             println!("{}", explanation.message);
@@ -87,11 +86,14 @@ impl Default for Context {
     }
 }
 
-impl std::convert::From<Opt> for Context {
-    fn from(options: Opt) -> Self {
+
+impl <'a> std::convert::From<ArgMatches<'a>> for Context {
+    fn from(options: ArgMatches<'a>) -> Self {
+        let direction = options.value_of("direction").and_then(|dir| Direction::from_str(dir).ok()).unwrap_or(Direction::Execute);
+
         Context {
-            direction: options.direction,
-            explain: options.explain,
+            direction: direction,
+            explain: options.is_present("explain"),
             ..Context::default()
         }
     }
