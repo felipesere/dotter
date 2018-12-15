@@ -29,7 +29,7 @@ fn main() -> Result<()> {
         .about("Think of a minimal subset of anisble, without any dependencies")
         .group(
             ArgGroup::with_name("execution")
-            .args(&["direction", "inventory", "explain", "group"])
+            .args(&["direction", "inventory", "explain", "only"])
             .multiple(true)
             .requires_all(&["direction", "inventory"])
             .required(false))
@@ -42,9 +42,9 @@ fn main() -> Result<()> {
              .takes_value(true))
         .arg(Arg::with_name("explain").short("e").long("explain").requires("execution"))
         .arg(
-            Arg::with_name("group")
-            .short("g")
-            .long("group")
+            Arg::with_name("only")
+            .short("o")
+            .long("only")
             .takes_value(true)
             .requires("execution"))
         .arg(
@@ -64,7 +64,7 @@ fn main() -> Result<()> {
 
     let mut inv = inventory::read_inventory(&matches.value_of("inventory").unwrap())?;
 
-    let target: Box<dyn Command> = if let Some(name) = &matches.value_of("group") {
+    let target: Box<dyn Command> = if let Some(name) = &matches.value_of("only") {
         let group = inv.group(name.as_ref()).expect("did not find group.");
         Box::new(group)
     } else {

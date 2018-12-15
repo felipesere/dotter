@@ -71,7 +71,7 @@ Only two parameters are mandatory: whether to `run` or `rollback` and the invent
 ./dotter run ./sample/inventory.json
 ```
 
-If you only want to run a `group` in that inventory, you can name it with `--group`:
+If you only want to run a `group` in that inventory, you can name it with `--only`:
 
 ```sh
 ./dotter run ./sample/inventory.json --only vim
