@@ -1,5 +1,3 @@
-#![feature(uniform_paths)]
-
 extern crate serde;
 extern crate serde_json;
 extern crate symlink;
@@ -36,16 +34,19 @@ fn main() -> Result<()> {
             .requires_all(&["direction", "inventory"])
             .required(false))
         .arg(Arg::with_name("direction")
-             .short("d")
-             .long("direction")
              .takes_value(true)
+             .index(1)
              .possible_values(&["run", "rollback"]))
         .arg(Arg::with_name("inventory")
-             .short("i")
-             .long("inventory")
+             .index(2)
              .takes_value(true))
         .arg(Arg::with_name("explain").short("e").long("explain").requires("execution"))
-        .arg(Arg::with_name("group").short("g").long("group").requires("execution"))
+        .arg(
+            Arg::with_name("group")
+            .short("g")
+            .long("group")
+            .takes_value(true)
+            .requires("execution"))
         .arg(
             Arg::with_name("version").short("v").long("version").conflicts_with("execution")
             )
