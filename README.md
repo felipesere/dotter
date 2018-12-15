@@ -33,6 +33,35 @@ For homebrew, there there options:
 
 Symlinks can contain environment variables which will be expanded with whatever is in the environment for the dotter process.
 
+Sample inventory:
+
+```
+{
+  "vim": {
+    "brew" : [ "nvim", {"tap": "homebrew/cask-fonts", "name": "font-roboto-mono"} ],
+    "symlinks": [
+      { "from": "nvim/x.ini",   "to": "$HOME/.config/nvim/x.ini" },
+      { "from": "nvim/plugged", "to": "$HOME/.config/nvim/plugged" },
+      { "from": "nvim/autoload","to": "$HOME/.config/nvim/autoload" }
+    ],
+    "shell" : [
+      {"run": "vim +PlugInstall +qall"}
+    ]
+  },
+
+  "homebrew": {
+    "brew" : [
+      "git",
+      "htop"
+    ]
+  },
+
+  "java": {
+    "brew": [{"cask": "intellij-idea"}]
+  }
+}
+```
+
 
 ## Command line
 
@@ -49,5 +78,3 @@ If you only want to run a `group` in that inventory, you can name it with `--gro
 ```
 
 Finally, if you just want to see what `run` or `rollback` would do, add the `--explain` flag.
-
-
