@@ -20,7 +20,7 @@ use std::collections::HashMap;
 use std::default::Default;
 use std::{env, result};
 use std::path::PathBuf;
-use clap::{App, Arg, ArgMatches};
+use clap::{App, Arg, ArgMatches, ArgGroup};
 use std::str::FromStr;
 
 pub type Result<T> = result::Result<T, failure::Error>;
@@ -29,12 +29,25 @@ fn main() -> Result<()> {
     let matches = App::new("dotter")
         .author("Felipe Sere <felipesere@gmail.com>")
         .about("Think of a minimal subset of anisble, without any dependencies")
-        .arg(Arg::with_name("direction"))
-        .arg(Arg::with_name("inventory"))
-        .arg(Arg::with_name("explain"))
-        .arg(Arg::with_name("group"))
+        .group(
+            ArgGroup::with_name("execution")
+            .args(&["direction", "inventory", "explain", "group"])
+            .multiple(true)
+            .requires_all(&["direction", "inventory"])
+            .required(false))
+        .arg(Arg::with_name("direction")
+             .short("d")
+             .long("direction")
+             .takes_value(true)
+             .possible_values(&["run", "rollback"]))
+        .arg(Arg::with_name("inventory")
+             .short("i")
+             .long("inventory")
+             .takes_value(true))
+        .arg(Arg::with_name("explain").short("e").long("explain").requires("execution"))
+        .arg(Arg::with_name("group").short("g").long("group").requires("execution"))
         .arg(
-            Arg::with_name("version").short("v").long("version")
+            Arg::with_name("version").short("v").long("version").conflicts_with("execution")
             )
         .get_matches();
 
