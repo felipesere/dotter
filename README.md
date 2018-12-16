@@ -1,4 +1,7 @@
 # Welcome to Dotter!
+
+> This is wishful documentation. Dotter does not yet do all of these things.
+
 Think ansible, but smaller and no outside dependencies that `dotter` can't install itself.
 
 Currently it only installs `homebrew` if its not found.
